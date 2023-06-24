@@ -42,7 +42,8 @@ function priceValidatior (req, res, next) {
  
 }
 
-// Checks if an ID is given. If an ID is given, checks if the id given matches the existing ID
+// Checks if an ID is given. 
+// If an ID is given, checks if the id given matches the existing ID
 function dishIdValidator (req, res, next) {
     // ID from the request.params
     const { dishId } = req.params

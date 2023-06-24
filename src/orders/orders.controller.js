@@ -1,16 +1,23 @@
+// Imports
 const orders = require('../data/orders-data')
 const dataHas = require('../utils/dataHas')
 const nextId = require('../utils/nextId')
 
+// Checks if the desired order id exists and sets the corresponding data to the response.locals
+// Sends a 404 error if the order id does not exist
 const orderExists = (req, res, next) => {
+    // Order ID retrieved from the request.params
     const { orderId } = req.params
+    // Both the order object and its index are found
     const foundOrder = orders.find((order) => order.id === orderId)
     const orderIndex = orders.findIndex((order) => order.id === orderId)
     foundOrder ? (
+        // If found, the object and index are added to the response.locals
         res.locals.foundOrder = foundOrder,
         res.locals.orderIndex = orderIndex,
         next()
     ) : (
+        // If not found, a 404 error is sent
         next({
             status: 404,
             message: `Order id not found: ${orderId}`

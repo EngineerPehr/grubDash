@@ -72,3 +72,12 @@ The orders directory contains two files: `orders.router.js` and `orders.controll
 This file imports `Router` from Express, the controller from `orders.controller.js`, and `methodNotAllowed` from the `errors` directory. It then uses these imports to create two routes: a root route (`/`) and a order-specific route (`/:orderId`). The root route has `GET` and `POST` methods, with all other methods being forbidden via `methodNotAllowed`. The order-specific route has `GET`,`PUT`, and `DELETE` methods, with all other methods being forbidden via `methodNotAllowed`.
 
 #### orders.controller.js
+
+This file contains seven validation functions and all five of the CRUDL functions.The data is imported from `orders-data.js`, as well as two helper functions from the `utils` directory: `dataHas` and `nextId`.
+
+##### orderExists
+
+This is a validation function that checks if a specified order id exists. The id is received from the `request.params`. That id is then compared to the id's within the order data array via the `.find()` and `.findIndex()` methods. If found, the order object and index are set to the `response.locals`. This allows the object to be accessed by other functions down the path. If the id does not match an existing id, a `404` status is returned along with a message identifying the id that could not be found.
+
+##### dishesValidator
+
