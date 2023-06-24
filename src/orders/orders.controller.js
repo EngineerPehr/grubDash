@@ -1,11 +1,11 @@
-const path = require('path')
-const orders = require(path.resolve('src/data/orders-data'))
+const orders = require('../data/orders-data')
 const dataHas = require('../utils/dataHas')
+const nextId = require('../utils/nextId')
 
 const orderExists = (req, res, next) => {
     const { orderId } = req.params
-    const foundOrder = orders.find((order) => order.id === Number(orderId))
-    const orderIndex = orders.findIndex((order) => order.id === Number(orderId))
+    const foundOrder = orders.find((order) => order.id === orderId)
+    const orderIndex = orders.findIndex((order) => order.id === orderId)
     orderId ? (
         res.locals.order = foundOrder,
         res.locals.index = orderIndex,
@@ -20,20 +20,20 @@ const orderExists = (req, res, next) => {
 
 const dishesValidator = (req, res, next) => {
     const { data: { dishes } = {} } = req.body
-    (dishes.length > 0 && Array.isArray(dishes)) ? (
+    if (dishes.length > 0 && Array.isArray(dishes)) {
         next()
-    ) : (
+    } else {
         next({
             status: 400, 
             message: `Order must include at least one dish`
         })
-    )
+    }
 }
 
 const dishValidator = (req, res, next) => {
     const { data: { dishes } = {} } = req.body
-    const defectiveDishIndex = dishes.findIndex((dish) => dish.quantity.length <= 0 && !Number.isInteger(dish.quantity))
-    !defectiveDishIndex ? (
+    const defectiveDishIndex = dishes?.findIndex((dish) => dish.quantity.length <= 0 && !Number.isInteger(dish.quantity))
+    defectiveDishIndex === -1 ? (
         next()
     ) : (
         next({
@@ -49,7 +49,7 @@ const orderIdValidator = (req, res, next) => {
     !id ? (
         next()
     ) : (
-        id === Number(orderId) ? (
+        id === orderId ? (
             next()
         ) : (
             next({
@@ -91,8 +91,8 @@ const orderDeliveredValidator = (req, res, next) => {
 }
 
 const pendingChecker = (req, res, next) => {
-    const { data: { status } = {} } = req.body
-    status === 'pending' ? (
+    const order = res.locals.order
+    order.status === 'pending' ? (
         next()
     ) : (
         next({
@@ -105,6 +105,7 @@ const pendingChecker = (req, res, next) => {
 function create (req, res, next) {
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body
     const newOrder = {
+        id: nextId(),
         deliverTo, 
         mobileNumber, 
         status, 
@@ -133,8 +134,9 @@ function update (req, res, next) {
 
 function destroy (req, res, next) {
     const index = res.locals.index
-    const order = res.locals.order
-    console.log(order.status)
+    orders.splice(index, 1)
+    res.sendStatus(204)
+    
 }
 
 function list (req, res, next) {
@@ -145,7 +147,6 @@ module.exports = {
     create: [
         dataHas('deliverTo', 'Order'), 
         dataHas('mobileNumber', 'Order'), 
-        dataHas('status', 'Order'), 
         dataHas('dishes', 'Order'), 
         dishesValidator, 
         dishValidator, 
@@ -169,7 +170,8 @@ module.exports = {
         update,
     ],
     delete: [
-        orderExists, 
+        orderExists,
+        pendingChecker,  
         destroy, 
     ],
     list
