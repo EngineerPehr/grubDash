@@ -6,9 +6,9 @@ const orderExists = (req, res, next) => {
     const { orderId } = req.params
     const foundOrder = orders.find((order) => order.id === orderId)
     const orderIndex = orders.findIndex((order) => order.id === orderId)
-    orderId ? (
-        res.locals.order = foundOrder,
-        res.locals.index = orderIndex,
+    foundOrder ? (
+        res.locals.foundOrder = foundOrder,
+        res.locals.orderIndex = orderIndex,
         next()
     ) : (
         next({
@@ -32,15 +32,19 @@ const dishesValidator = (req, res, next) => {
 
 const dishValidator = (req, res, next) => {
     const { data: { dishes } = {} } = req.body
-    const defectiveDishIndex = dishes?.findIndex((dish) => dish.quantity.length <= 0 && !Number.isInteger(dish.quantity))
-    defectiveDishIndex === -1 ? (
+    const faultyQualityIndex = dishes.findIndex((dish) => 
+        !dish.hasOwnProperty('quantity') || 
+        !Number.isInteger(dish.quantity) ||
+        dish.quantity <= 0)
+    faultyQualityIndex === -1 ? (
         next()
     ) : (
         next({
             status: 400, 
-            message: `Dish ${defectiveDishIndex} must have a quantity that is an integer greater than 0`
+            message: `Dish ${faultyQualityIndex} must have a quantity that is an integer greater than 0`
         })
     )
+
 }
 
 const orderIdValidator = (req, res, next) => {
@@ -91,13 +95,13 @@ const orderDeliveredValidator = (req, res, next) => {
 }
 
 const pendingChecker = (req, res, next) => {
-    const order = res.locals.order
+    const order = res.locals.foundOrder
     order.status === 'pending' ? (
         next()
     ) : (
         next({
-            status: 400, 
-            message: `An order cannot be deleted unless it is pending.`
+            status: 400,
+            message: `An order cannot be deleted unless it is pending`
         })
     )
 }
@@ -116,12 +120,12 @@ function create (req, res, next) {
 }
 
 function read (req, res, next) {
-    const order = res.locals.order
+    const order = res.locals.foundOrder
     res.json({ data: order })
 }
 
 function update (req, res, next) {
-    const order = res.locals.order
+    const order = res.locals.foundOrder
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body
 
     order.deliverTo = deliverTo
@@ -133,7 +137,7 @@ function update (req, res, next) {
 }
 
 function destroy (req, res, next) {
-    const index = res.locals.index
+    const index = res.locals.orderIndex
     orders.splice(index, 1)
     res.sendStatus(204)
     
