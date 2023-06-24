@@ -1,6 +1,6 @@
 const path = require('path')
 const orders = require(path.resolve('src/data/orders-data'))
-const nextId = require('../utils/nextId')
+const dataHas = require('../utils/dataHas')
 
 const orderExists = (req, res, next) => {
     const { orderId } = req.params
@@ -18,20 +18,123 @@ const orderExists = (req, res, next) => {
     )
 }
 
-function create (req, res, next) {
+const dishesValidator = (req, res, next) => {
+    const { data: { dishes } = {} } = req.body
+    (dishes.length > 0 && Array.isArray(dishes)) ? (
+        next()
+    ) : (
+        next({
+            status: 400, 
+            message: `Order must include at least one dish`
+        })
+    )
+}
 
+const dishValidator = (req, res, next) => {
+    const { data: { dishes } = {} } = req.body
+    const defectiveDishIndex = dishes.findIndex((dish) => dish.quantity.length <= 0 && !Number.isInteger(dish.quantity))
+    !defectiveDishIndex ? (
+        next()
+    ) : (
+        next({
+            status: 400, 
+            message: `Dish ${defectiveDishIndex} must have a quantity that is an integer greater than 0`
+        })
+    )
+}
+
+const orderIdValidator = (req, res, next) => {
+    const { orderId } = req.params
+    const { data: { id } = {} } = req.body
+    !id ? (
+        next()
+    ) : (
+        id === Number(orderId) ? (
+            next()
+        ) : (
+            next({
+                status: 400, 
+                message: `Order id does not match route id. order: ${id}, Route: ${orderId}`
+            })
+        )
+    )
+}
+
+const orderStatusValidator = (req, res, next) => {
+    const { data: { status } = {} } = req.body
+    const validStatus = [
+        'pending', 
+        'preparing', 
+        'out-for-delivery', 
+        'delivered', 
+    ]
+    validStatus.includes(status) ? (
+        next()
+    ) : (
+        next({
+            status: 400,
+            message: `Order must have a status of ${validStatus.join(', ')}`
+        })
+    )
+}
+
+const orderDeliveredValidator = (req, res, next) => {
+    const { data: { status } = {} } = req.body
+    status !== 'delivered' ? (
+        next()
+    ) : (
+        next({
+            status: 400, 
+            message: `A delivered order cannot be changed`
+        })
+    )
+}
+
+const pendingChecker = (req, res, next) => {
+    const { data: { status } = {} } = req.body
+    status === 'pending' ? (
+        next()
+    ) : (
+        next({
+            status: 400, 
+            message: `An order cannot be deleted unless it is pending.`
+        })
+    )
+}
+
+function create (req, res, next) {
+    const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body
+    const newOrder = {
+        deliverTo, 
+        mobileNumber, 
+        status, 
+        dishes, 
+    }
+    orders.push(newOrder)
+    res.status(201).json({ data: newOrder })
 }
 
 function read (req, res, next) {
-
+    const order = res.locals.order
+    res.json({ data: order })
 }
 
 function update (req, res, next) {
+    const order = res.locals.order
+    const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body
 
+    order.deliverTo = deliverTo
+    order.mobileNumber = mobileNumber
+    order.status = status
+    order.dishes = dishes
+
+    res.json({ data: order })
 }
 
 function destroy (req, res, next) {
-
+    const index = res.locals.index
+    const order = res.locals.order
+    console.log(order.status)
 }
 
 function list (req, res, next) {
@@ -40,16 +143,34 @@ function list (req, res, next) {
 
 module.exports = {
     create: [
-
+        dataHas('deliverTo', 'Order'), 
+        dataHas('mobileNumber', 'Order'), 
+        dataHas('status', 'Order'), 
+        dataHas('dishes', 'Order'), 
+        dishesValidator, 
+        dishValidator, 
+        create, 
     ],
     read: [
-        orderExists
+        orderExists, 
+        read, 
     ],
     update: [
-        orderExists
+        orderExists, 
+        orderIdValidator, 
+        dataHas('deliverTo', 'Order'), 
+        dataHas('mobileNumber', 'Order'), 
+        dataHas('status', 'Order'), 
+        dataHas('dishes', 'Order'), 
+        dishesValidator, 
+        dishValidator, 
+        orderStatusValidator, 
+        orderDeliveredValidator, 
+        update,
     ],
     delete: [
-        orderExists
+        orderExists, 
+        destroy, 
     ],
     list
 }

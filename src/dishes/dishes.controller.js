@@ -1,11 +1,11 @@
-const path = require('path')
-const dishes = require(path.resolve('src/data/dishes-data'))
+const dishes = require('../data/dishes-data')
+const dataHas = require('../utils/dataHas')
 const nextId = require('../utils/nextId')
 
-const dishExists = (req, res, next) => {
+function dishExists (req, res, next) {
     const { dishId } = req.params
-    const foundDish = dishes?.find((dish) => dish.id === Number(dishId))
-    const dishIndex = dishes?.findIndex((dish) => dish.id === Number(dishId))
+    const foundDish = dishes.find((dish) => dish.id === dishId)
+    const dishIndex = dishes.findIndex((dish) => dish.id === dishId)
     foundDish ? (
         res.locals.dish = foundDish, 
         res.locals.index = dishIndex, 
@@ -18,42 +18,33 @@ const dishExists = (req, res, next) => {
     )
 }
 
-const dataHas = (propertyName) => {
-    return (req, res, next) => {
-        const { data = {} } = req.body
-        data[propertyName] ? (
+function priceValidatior (req, res, next) {
+    const { data: { price } = {} } = req.body
+        if (price > 0 && Number.isInteger(price)) {
+            next()
+        } else {
+            next({
+                status: 400, 
+                message: `Dish must have a price that is an integer greater than 0`
+            })
+        }
+ 
+}
+
+function dishIdValidator (req, res, next) {
+    const { dishId } = req.params
+    const { data: { id } = {} } = req.body
+    !id ? (
+        next()
+    ) : (
+        id === dishId ? (
             next()
         ) : (
             next({
                 status: 400, 
-                message: `Dish must include a ${propertyName}`
+                message: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}`
             })
         )
-    }
-}
-
-const priceValidatior = (req, res, next) => {
-    const { data: { price } = {} } = req.body
-    (price > 0 && Number.isInteger(price)) ? (
-        next()
-    ) : (
-        next({
-            status: 400, 
-            message: `Dish must have a price that is an integer greater than 0`
-        })
-    )
-}
-
-const idValidator = (req, res, next) => {
-    const { dishId } = req.params
-    const { data: { id } = {} } = req.body
-    id === Number(dishId) ? (
-        next()
-    ) : (
-        next({
-            status: 400, 
-            message: `Dish id does not match route id. Dish: ${id}, Route: ${dishId}`
-        })
     )
 }
 
@@ -93,10 +84,10 @@ function list (req, res, next) {
 
 module.exports = {
     create: [
-        dataHas('name'), 
-        dataHas('description'), 
-        dataHas('price'), 
-        dataHas('image_url'),
+        dataHas('name', 'Dish'), 
+        dataHas('description', 'Dish'), 
+        dataHas('price', 'Dish'), 
+        dataHas('image_url', 'Dish'),
         priceValidatior, 
         create, 
     ],
@@ -106,11 +97,11 @@ module.exports = {
     ],
     update: [
         dishExists,
-        idValidator, 
-        dataHas('name'), 
-        dataHas('description'), 
-        dataHas('price'), 
-        dataHas('image_url'),
+        dishIdValidator, 
+        dataHas('name', 'Dish'), 
+        dataHas('description', 'Dish'), 
+        dataHas('price', 'Dish'), 
+        dataHas('image_url', 'Dish'),
         priceValidatior, 
         update,
     ],
