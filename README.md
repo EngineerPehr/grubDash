@@ -38,3 +38,28 @@ This is a validation function that checks if the price given for either creating
 ##### dishIdValidator
 
 This is a validation function that checks if the ID property provided by the `request.body` matches the route ID provided by the `request.params`. If the two IDs match, then the validator is cleared. If not, then a `400` status is returned with a message explaining the discrepency. Note: The ID property is not required for the `update` method, so this validator is automatically cleared if there is no ID property in the `request.body`.
+
+##### create
+
+This function creates and adds a dish object to the API. The data in the `request.body` is used to create the new dish. `nextId` is used to create a unique id for the dish. Once the dish is added to the API, the user is given a confirmation response. All validation is done outside of the function.
+
+##### read
+
+This function retrieves a specific dish from the API. It does this by using the `response.locals` that `dishExists` set up. `dishExists` handles the validation, so this function just responds with the dish object.
+
+##### update
+
+This function updates the data within a specific dish object. It recieves the dish from `response.locals` and gets the updated data from the `request.body`. It updates the object and then returns the updated object as confirmation. All validation is done outside of the function.
+
+##### delete
+
+Deleting existing dishes is not allowed, so there is no delete function for the dishes data.
+
+##### list
+
+Retrieves all the dish data from the API. No validation is required.
+
+##### module.exports
+
+The CRUDL functions are exported as an object with all of the required validation.
+
