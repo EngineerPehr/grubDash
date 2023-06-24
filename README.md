@@ -24,3 +24,17 @@ The dishes directory contains two files: `dishes.router.js` and `dishes.controll
 This file imports `Router` from Express, the controller from `dishes.controller.js`, and `methodNotAllowed` from the `errors` directory. It then uses these imports to create two routes: a root route (`/`) and a dish-specific route (`/:dishId`). The root route has `GET` and `POST` methods, with all other methods being forbidden via `methodNotAllowed`. The dish-specific route has `GET` and `PUT` methods, with all other methods being forbidden via `methodNotAllowed`.
 
 #### dishes.controller.js
+
+This file contains three validation functions and four of the CRUDL functions, namely `create`, `read`, `update` and `list`. Dishes cannot be deleted once added, so there is no delete function. The data is imported from `dishes-data.js`, as well as two helper functions from the `utils` directory: `dataHas` and `nextId`.
+
+##### dishExists
+
+This is a validation function that checks if a specified dish id exists. The id is received from the `request.params`. That id is then compared to the id's within the dish data array via the `.find()` and `.findIndex()` methods. If found, the dish object and index are set to the `response.locals`. This allows the object to be accessed by other functions down the path. If the id does not match an existing id, a `404` status is returned along with a message identifying the id that could not be found.
+
+##### priceValidator
+
+This is a validation function that checks if the price given for either creating or updating a dish object is valid. It receives the price property from the `request.body`. If the price is an integer greater than 0, the price property clears the validation. If it is not an integer or is less than or equal to 0, it fails the validation. At that point, a `400` status is returned with a message explaining a valid price property.
+
+##### dishIdValidator
+
+This is a validation function that checks if the ID property provided by the `request.body` matches the route ID provided by the `request.params`. If the two IDs match, then the validator is cleared. If not, then a `400` status is returned with a message explaining the discrepency. Note: The ID property is not required for the `update` method, so this validator is automatically cleared if there is no ID property in the `request.body`.
