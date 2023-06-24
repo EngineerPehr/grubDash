@@ -63,3 +63,12 @@ Retrieves all the dish data from the API. No validation is required.
 
 The CRUDL functions are exported as an object with all of the required validation.
 
+### Orders
+
+The orders directory contains two files: `orders.router.js` and `orders.controller.js`. These are contain the routes and controls for the order data within the API.
+
+#### orders.router.js
+
+This file imports `Router` from Express, the controller from `orders.controller.js`, and `methodNotAllowed` from the `errors` directory. It then uses these imports to create two routes: a root route (`/`) and a order-specific route (`/:orderId`). The root route has `GET` and `POST` methods, with all other methods being forbidden via `methodNotAllowed`. The order-specific route has `GET`,`PUT`, and `DELETE` methods, with all other methods being forbidden via `methodNotAllowed`.
+
+#### orders.controller.js
