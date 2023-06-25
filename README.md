@@ -1,5 +1,5 @@
 # GrubDash
-## Written by Pehr Lofgreen
+### Written by Pehr Lofgreen
 
 ## Introduction
 
@@ -105,18 +105,34 @@ This is a validation function that checks if the given order is pending. This is
 
 #### create
 
+This function creates and adds an order object to the API. The data in the `request.body` is used to create the new order. `nextId` is used to create a unique id for the order. Once the order is added to the API, the user is given a confirmation response. All validation is done outside of the function.
+
 #### read
+
+This function retrieves a specific order from the API. It does this by using the `response.locals` that `orderExists` set up. `orderExists` handles the validation, so this function just responds with the order object.
 
 #### update
 
+This function updates the data within a specific order object. It recieves the order from `response.locals` and gets the updated data from the `request.body`. It updates the object and then returns the updated object as confirmation. All validation is done outside of the function.
+
 #### destroy
+
+This function removes a given order object from the API. It returns a `204` status as confirmation. All validation is done outside of the function.
 
 #### list
 
+Retrieves all the order data from the API. No validation is required.
+
 #### module.exports
+
+The CRUDL functions are exported as an object with all of the required validation.
 
 ## Other Functions
 
-### dataHas
+#### dataHas
 
-### methodNotAllowed
+This is a validation function that checks if a given property is within the `request.body`. If the property is not found, it returns a `400` status and a message specifying the missing property. This is used by both `dishes.controller.js` and `orders.controllers.js`, so it imported from the `utils` directory.
+
+#### methodNotAllowed
+
+This is an error handler function that returns a 405 status and a message that the attempted HTTP method is not allowed. It is used by both `dishes.router.js` and `orders.router.js`, so it is imported from the `errors` directory.

@@ -139,47 +139,66 @@ const pendingChecker = (req, res, next) => {
     )
 }
 
+// Creates a new order object and adds it to the API
 function create (req, res, next) {
+    // Data from request.body
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body
     const newOrder = {
+        // ID generated via nextId()
         id: nextId(),
         deliverTo, 
         mobileNumber, 
         status, 
         dishes, 
     }
+    // Object added to API
     orders.push(newOrder)
+    // Confirmation sent
     res.status(201).json({ data: newOrder })
 }
 
+// Retrieves a given order from the API
 function read (req, res, next) {
+    // Order retrieved from response.locals
     const order = res.locals.foundOrder
+    // Order object sent
     res.json({ data: order })
 }
 
+// Updates a given order within the API
 function update (req, res, next) {
+    // Order object retrieved from response.locals
     const order = res.locals.foundOrder
+    // Data from request.body
     const { data: { deliverTo, mobileNumber, status, dishes } = {} } = req.body
 
+    //Order object updated
     order.deliverTo = deliverTo
     order.mobileNumber = mobileNumber
     order.status = status
     order.dishes = dishes
 
+    //Confirmation sent
     res.json({ data: order })
 }
 
+// Removes a given order from the API
 function destroy (req, res, next) {
+    // Order object's index retrieved from response.locals
     const index = res.locals.orderIndex
+    // Order removed
     orders.splice(index, 1)
+    // Confirmation sent
     res.sendStatus(204)
-    
 }
 
+// Retrieves all orders from the API
 function list (req, res, next) {
+    // Responds with all orders
     res.json({ data: orders })
 }
 
+// Functions exported with proper validation
 module.exports = {
     create: [
         dataHas('deliverTo', 'Order'), 
